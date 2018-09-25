@@ -7,7 +7,7 @@
 #define in2       7
 //#define pressurePin A4
 
-int buttonPin = 8;
+int buttonPin = 9;
 int slideValue = 200;
 
 void setup() {
@@ -31,12 +31,12 @@ void loop() {
   SlideToValue(slideValue);
   
   if (digitalRead(buttonPin) == 0) {
-    slideValue = 600;
+    slideValue = 100;
     digitalWrite(ENABLE, HIGH); //enable on
     digitalWrite(DIRA, HIGH); //one way
     digitalWrite(DIRB, LOW);
   } else {
-    slideValue = 200;
+    slideValue = 500;
     digitalWrite(ENABLE, LOW); //slow stop
   }
 
