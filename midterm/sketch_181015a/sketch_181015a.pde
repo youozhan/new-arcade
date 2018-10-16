@@ -33,6 +33,7 @@ import processing.serial.*;
 import processing.opengl.*;
 import toxi.geom.*;
 import toxi.processing.*;
+import ddf.minim.*;
 
 // NOTE: requires ToxicLibs to be installed in order to run properly.
 // 1. Download from http://toxiclibs.org/downloads
@@ -42,6 +43,7 @@ import toxi.processing.*;
 
 ToxiclibsSupport gfx;
 
+// For data transmission
 Serial port;                         // The serial port
 char[] teapotPacket = new char[14];  // InvenSense Teapot packet
 int serialCount = 0;                 // current packet byte position
@@ -55,6 +57,7 @@ float[] gravity = new float[3];
 float[] euler = new float[3];
 float[] ypr = new float[3];
 
+// For cat display
 PImage img;
 PFont font;
 float pupilX1;
@@ -62,13 +65,26 @@ float pupilX2;
 float pupilY1;
 float pupilY2;
 //float theta = 0;
+
+// For game mechanics
 int gameScreen = 0;
 int maxHealth = 100;
 float health = 100;
-float healthDecrease = 10;
-int healthBarWidth = 400;
+float healthDecrease = 0.2;
+int healthBarWidth = 380;
 boolean startTime;
+int steadyTime = 10;
 
+// For data smoothing
+int numReadings = 5;
+float[] readings = new float[numReadings];
+int readIndex = 0;
+float total = 0;
+float average = 0;
+float reference;
+
+AudioPlayer player;
+Minim minim;//audio context
 
 void setup() {
   size(600, 800);
@@ -77,6 +93,10 @@ void setup() {
   textFont(font);
   startTime = false;
   gfx = new ToxiclibsSupport(this);
+
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = 0;
+  }
 
   // display serial port list for debugging/clarity
   //println(Serial.list());
@@ -108,6 +128,7 @@ void draw() {
     port.write('r');
     interval = millis();
     startTime = true;
+    reference = gravity[1];
   }
 
   // 3-step rotation from yaw/pitch/roll angles (gimbal lock!)
@@ -133,7 +154,7 @@ void initScreen() {
   background(0);
   textAlign(CENTER);
   textSize(36);
-  text("How to engage a bored cat?", width/2, height/2 - 80);
+  text("How to fail your cat's attention?", width/2, height/2 - 80);
   textSize(24);
   text("Press S to Start", width/2, height/2);
 }
@@ -162,6 +183,7 @@ void gameOverScreen() {
 
   health = maxHealth;
   startTime = false;
+  reference = gravity[1];
 }
 
 
@@ -221,7 +243,7 @@ void serialEvent(Serial port) {
         //println("q:\t" + round(q[0]*100.0f)/100.0f + "\t" + round(q[1]*100.0f)/100.0f + "\t" + round(q[2]*100.0f)/100.0f + "\t" + round(q[3]*100.0f)/100.0f);
         //println("euler:\t" + euler[0]*180.0f/PI + "\t" + euler[1]*180.0f/PI + "\t" + euler[2]*180.0f/PI);
         //println("ypr:\t" + ypr[0]*180.0f/PI + "\t" + ypr[1]*180.0f/PI + "\t" + ypr[2]*180.0f/PI);
-        println("gravity:\t" + gravity[0] + "\t" + gravity[1] + "\t" + gravity[2]);
+        //println("gravity:\t" + gravity[0] + "\t" + gravity[1] + "\t" + gravity[2]);
       }
     }
   }
@@ -238,13 +260,13 @@ void eyeDisplay() {
   // translate everything to the middle of the viewport
   pushMatrix();
   translate(288, 356); 
-  rotate(euler[2]);
+  rotate(ypr[2]*2);
   ellipse(2, 2, 8, 8); 
   popMatrix(); 
 
   pushMatrix();
   translate(340, 349); 
-  rotate(euler[2]);
+  rotate(ypr[2]*2);
   ellipse(2, 2, 8, 8); 
   popMatrix();
 }
@@ -258,7 +280,20 @@ void drawHealthBar() {
     fill(0);
   }
 
-  rect(100, 20, healthBarWidth * (health/maxHealth), 5);
+  rect(120, 20, healthBarWidth * (health/maxHealth), 5);
+  textSize(18);
+  text(int(health), 100, 30);
+}
+
+void increaseHealth() {
+  steadyTime --;
+  if (steadyTime == 0) {
+    health += healthDecrease;
+    if (health >= maxHealth) {
+      health = maxHealth;
+    }
+    steadyTime = 10;
+  }
 }
 
 void decreaseHealth() {
@@ -270,9 +305,29 @@ void decreaseHealth() {
 
 void checkAccel() {
   if (startTime) {
-    if (abs(gravity[0]+0.0078)<0.5 || abs(gravity[1]+0.1483)<0.5 || abs(gravity[2]-0.989)<0.5) {
+    //if (abs(gravity[0]-0.0078)<0.2 && abs(gravity[1]+0.1483)<0.2 && abs(gravity[2]-0.989)<0.2) {
+    //  decreaseHealth();
+    //  println("Health decreased");
+    //}
+    
+    
+    total = total - readings[readIndex];
+    readings[readIndex] = gravity[1];
+    total = total + readings[readIndex];
+    readIndex ++;
+
+    if (readIndex >= numReadings) {
+      readIndex = 0;
+    }
+
+    println("gravity:\t" + gravity[1] + "\t" + "average: \t" + average);
+    
+    average = total / numReadings;
+    if (abs(average-reference)<0.12) {
       decreaseHealth();
-      println("Health decreased");
+      println("Health decreased\t" + reference);
+    } else {
+      increaseHealth();
     }
   }
 }
