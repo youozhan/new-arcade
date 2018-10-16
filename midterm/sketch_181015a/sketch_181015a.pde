@@ -67,12 +67,15 @@ int maxHealth = 100;
 float health = 100;
 float healthDecrease = 10;
 int healthBarWidth = 400;
+boolean startTime;
+
 
 void setup() {
   size(600, 800);
   img = loadImage("Asset_1.png");
   font = createFont("ComicSansMS", 28);
   textFont(font);
+  startTime = false;
   gfx = new ToxiclibsSupport(this);
 
   // display serial port list for debugging/clarity
@@ -104,6 +107,7 @@ void draw() {
     // in case the MPU is halted/reset while applet is running
     port.write('r');
     interval = millis();
+    startTime = true;
   }
 
   // 3-step rotation from yaw/pitch/roll angles (gimbal lock!)
@@ -135,6 +139,8 @@ void initScreen() {
 }
 
 void gameScreen() {
+  startTime = true;
+
   background(255);
   imageMode(CENTER);
   image(img, width/2, height/2);
@@ -144,15 +150,18 @@ void gameScreen() {
 
   drawHealthBar();
   eyeDisplay();
+  checkAccel();
 }
 
 void gameOverScreen() {
   background(0);
   textAlign(CENTER);
+  fill(255);
   text("Game Over", width/2, height/2 - 40);
   text("Press R to Restart", width/2, height/2 + 40);
 
   health = maxHealth;
+  startTime = false;
 }
 
 
@@ -172,6 +181,8 @@ void serialEvent(Serial port) {
       synced = 0;
       return;
     }
+
+    //if (serialCount > 0 || ch == ''){}
 
     if (serialCount > 0 || ch == '$') {
       teapotPacket[serialCount++] = (char)ch;
@@ -210,6 +221,7 @@ void serialEvent(Serial port) {
         //println("q:\t" + round(q[0]*100.0f)/100.0f + "\t" + round(q[1]*100.0f)/100.0f + "\t" + round(q[2]*100.0f)/100.0f + "\t" + round(q[3]*100.0f)/100.0f);
         //println("euler:\t" + euler[0]*180.0f/PI + "\t" + euler[1]*180.0f/PI + "\t" + euler[2]*180.0f/PI);
         //println("ypr:\t" + ypr[0]*180.0f/PI + "\t" + ypr[1]*180.0f/PI + "\t" + ypr[2]*180.0f/PI);
+        println("gravity:\t" + gravity[0] + "\t" + gravity[1] + "\t" + gravity[2]);
       }
     }
   }
@@ -222,6 +234,7 @@ void keyPressed() {
 }
 
 void eyeDisplay() {
+  fill(0);
   // translate everything to the middle of the viewport
   pushMatrix();
   translate(288, 356); 
@@ -252,5 +265,14 @@ void decreaseHealth() {
   health -= healthDecrease;
   if (health <= 0) {
     gameScreen = 2;
+  }
+}
+
+void checkAccel() {
+  if (startTime) {
+    if (abs(gravity[0]+0.0078)<0.5 || abs(gravity[1]+0.1483)<0.5 || abs(gravity[2]-0.989)<0.5) {
+      decreaseHealth();
+      println("Health decreased");
+    }
   }
 }
