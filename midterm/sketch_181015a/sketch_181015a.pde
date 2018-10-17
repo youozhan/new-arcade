@@ -94,6 +94,10 @@ void setup() {
   startTime = false;
   gfx = new ToxiclibsSupport(this);
 
+  minim = new Minim(this);
+  player = minim.loadFile("musicbox.mp3", 2048);
+  //player.play();
+
   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
     readings[thisReading] = 0;
   }
@@ -153,7 +157,7 @@ void draw() {
 void initScreen() {
   background(0);
   textAlign(CENTER);
-  textSize(36);
+  textSize(32);
   text("How to fail your cat's attention?", width/2, height/2 - 80);
   textSize(24);
   text("Press S to Start", width/2, height/2);
@@ -172,6 +176,8 @@ void gameScreen() {
   drawHealthBar();
   eyeDisplay();
   checkAccel();
+  
+  player.play();
 }
 
 void gameOverScreen() {
@@ -184,6 +190,8 @@ void gameOverScreen() {
   health = maxHealth;
   startTime = false;
   reference = gravity[1];
+  
+  player.pause();
 }
 
 
@@ -309,8 +317,8 @@ void checkAccel() {
     //  decreaseHealth();
     //  println("Health decreased");
     //}
-    
-    
+
+
     total = total - readings[readIndex];
     readings[readIndex] = gravity[1];
     total = total + readings[readIndex];
@@ -321,7 +329,7 @@ void checkAccel() {
     }
 
     println("gravity:\t" + gravity[1] + "\t" + "average: \t" + average);
-    
+
     average = total / numReadings;
     if (abs(average-reference)<0.12) {
       decreaseHealth();
