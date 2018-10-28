@@ -12,8 +12,8 @@ public class PlayerMove_copy : MonoBehaviour
     public float thrust = 50f;
     public Rigidbody rb1;
     public Rigidbody rb2;
-    //public bool hit1 = false;
-    //public bool hit2 = false;
+    public bool hit1 = false;
+    public bool hit2 = false;
     //SerialPort sp = new SerialPort("COM3", 9600);
 
 
@@ -26,6 +26,9 @@ public class PlayerMove_copy : MonoBehaviour
     private string serialInput;
     bool programActive = true;
     Thread thread;
+
+    private int btn1 = 0;
+    private int btn2 = 0;
 
     void Start()
     {
@@ -48,25 +51,29 @@ public class PlayerMove_copy : MonoBehaviour
         thread.Start();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (serialInput != null){
             string[] strEul = serialInput.Split(',');
             if(strEul.Length > 0){
                 if(int.Parse(strEul[0])!= 0)
                 {
-                    rb1.AddForce(transform.up * thrust);
+                    btn1 = 1;
                     Debug.Log("Button 1 detected");
                 } else {
+                    btn1 = 0;
                     StartCoroutine(WaitAndFall(1.5f, 1));
                 }
 
                 if (int.Parse(strEul[1]) != 0){
-                    rb2.AddForce(transform.up * thrust);
+                    btn2 = 1;
                     Debug.Log("Button 2 detected");
                 } else {
+                    btn2 = 0;
                     StartCoroutine(WaitAndFall(1.5f, 2));
                 }
+                
+                moveBalloon(btn1, btn2);
             }
         }
 
@@ -109,27 +116,27 @@ public class PlayerMove_copy : MonoBehaviour
         }
     }
 
-    //void moveBalloon(int move1, int move2)
-    //{
-    //    if (move1 == 1 && hit1 != true)
-    //    {
-    //        //add force up to balloon
-    //        rb1.AddForce(transform.up * thrust);
-    //    }
-    //    else if (move1 == 0 || hit1 == true)
-    //    {
-    //        //stall with gravity for a sec and then push balloon down
-    //        StartCoroutine(WaitAndFall(1.5f, 1));
-    //    }
-    //    if (move2 == 1 && hit2 != true)
-    //    {
-    //        //add force up to balloon
-    //        rb2.AddForce(transform.up * thrust);
-    //    }
-    //    else if (move2 == 0 || hit2 == true)
-    //    {
-    //        //stall with gravity for a sec and then push balloon down
-    //        StartCoroutine(WaitAndFall(1.5f, 2));
-    //    }
-    //}
+    void moveBalloon(int move1, int move2)
+    {
+        if (move1 == 1 && hit1 != true)
+        {
+            //add force up to balloon
+            rb1.AddForce(transform.up * thrust);
+        }
+        else if (move1 == 0 || hit1 == true)
+        {
+            //stall with gravity for a sec and then push balloon down
+            StartCoroutine(WaitAndFall(1.5f, 1));
+        }
+        if (move2 == 1 && hit2 != true)
+        {
+            //add force up to balloon
+            rb2.AddForce(transform.up * thrust);
+        }
+        else if (move2 == 0 || hit2 == true)
+        {
+            //stall with gravity for a sec and then push balloon down
+            StartCoroutine(WaitAndFall(1.5f, 2));
+        }
+    }
 }
