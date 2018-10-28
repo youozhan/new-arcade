@@ -1,7 +1,6 @@
 int sensor[2];
 int current[2];
 int previous[2];
-int reading[2];
 
 #define outputA 6
 #define outputB 7
@@ -27,17 +26,11 @@ void loop() {
 
   if (analogRead(A0) < 680) {
     sensor[0] = 1;
-    current[0] = 1;
   } else {
     sensor[0] = 0;
-    current[0] = 0;
   }
 
-  if (previous[0] == 1 && sensor[0] == 0) {
-    reading[0] = 1;
-  } else {
-    reading[0] = 0;
-  }
+  current[0] = sensor[0];
 
   // read the input on digital pin 6 and 7
   aState = digitalRead(outputA); // Reads the "current" state of the outputA
@@ -55,6 +48,7 @@ void loop() {
     }
   }
 
+  // If the encoder is rotating clockwise but not rotating, start the countdown and set the current reading to 0 if the countdown is over
   if (sensor[1] != previous[1] && waitTime == 0 ) {
     waitTime = 50;
   } else if (sensor[1] == previous[1] && waitTime == 0) {
@@ -63,25 +57,15 @@ void loop() {
     waitTime --;
   }
 
-  if (sensor[1] != previous[1]) {
-    reading[1] = 1;
-  } else {
-    reading[1] = 0;
-  }
-
   aLastState = aState; // Updates the previous state of the outputA with the current
-
-    Serial.print(current[0]);
-    Serial.print(",");
-    Serial.println(current[1]);
-//    Serial.print(",");
-//    Serial.println(waitTime); 
+  
+  // print out the two number values from 0-1024 separated by a comma
+  Serial.print(current[0]);
+  Serial.print(",");
+  Serial.println(current[1]);
 
   previous[0] = sensor[0];
   previous[1] = sensor[1];
-
-  // print out the two number values from 0-1024 separated by a comma
-
 
   //this technique can be extended for more sensor values, separating them all with commas or any other character then splitting it into an array in processing.
 }
