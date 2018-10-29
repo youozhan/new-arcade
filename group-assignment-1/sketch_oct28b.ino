@@ -22,9 +22,9 @@ void setup() {
 
 void loop() {
   // read the input on analog pin 0 and 1
-  //  sensor[0] = analogRead(A0);
+  int reading = analogRead(A0);
 
-  if (analogRead(A0) < 680) {
+  if (analogRead(A0) < 600) {
     sensor[0] = 1;
   } else {
     sensor[0] = 0;
@@ -53,12 +53,12 @@ void loop() {
     waitTime = 50;
   } else if (sensor[1] == previous[1] && waitTime == 0) {
     current[1] = 0;
-  } else if (sensor[1] == previous[1] && waitTime > 0){
+  } else if (sensor[1] == previous[1] && waitTime > 0) {
     waitTime --;
   }
 
   aLastState = aState; // Updates the previous state of the outputA with the current
-  
+
   // print out the two number values from 0-1024 separated by a comma
   Serial.print(current[0]);
   Serial.print(",");
