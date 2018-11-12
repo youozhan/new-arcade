@@ -1,8 +1,17 @@
+import processing.serial.*;
+import cc.arduino.*;
 PFont font;
 
 Block[] blocks = new Block[128];
 Person person1;
 Person person2;
+
+Serial port;
+int sensor0;
+int sensor1;
+
+Arduino arduino;
+int ledPin = 13;
 
 int x1 = int(random(0, 7));
 int y1 = int(random(0, 7));
@@ -19,6 +28,14 @@ float prev2;
 boolean status = true;
 
 void setup() {
+  //println(Serial.list());
+  port = new Serial(this, Serial.list()[3], 9600);
+
+  arduino = new Arduino(this, Arduino.list()[3], 9600);
+  arduino.pinMode(ledPin, Arduino.OUTPUT);
+
+  port.bufferUntil('\n');
+
   size(720, 480);
   background(255);
   font = createFont("Futura-Medium", 28);
@@ -49,10 +66,35 @@ void setup() {
   person2 = new Person(580, 160);
 }
 
+void serialEvent(Serial port) {
+  String inString = port.readStringUntil('\n');
+  if (inString != null) {
+    inString = trim(inString);
+    println(inString);
+    int[] allData = int(split(inString, ','));
+    //println(allData);
+    if (allData.length >= 2) { 
+      sensor0 = allData[0];
+      //println(sensor0);
+      sensor1 = allData[1];
+
+      //buttonKPressed = allButtons[0];
+      //buttonHPressed = allButtons[1];
+      //buttonJPressed = allButtons[2];
+      //buttonLPressed = allButtons[3];
+    }
+  }
+
+  //person1.posx = 120 + 20 * sensor0;
+  //person1.posy = 160 + 20 * sensor1;
+}
+
 void draw() {
   background(255);
   stroke(0);
   line(width/2, 0, width/2, height);
+  person1.update();
+  person2.update();
   treasure();
   //swap();
 
@@ -68,9 +110,6 @@ void draw() {
     blocks[i].update();
     blocks[i].display();
   }
-
-  //person1.update();
-  //person2.update();
 
   //println (person1.posx + " " + person1.posy + " " + person2.posx + " " + person2. posy);
 
@@ -174,7 +213,12 @@ void keyReleased() {
 }
 
 void treasure() {
-  println(x1 + " " + y1 + " " + x2 + " " + y2 + " " + xSwap1 + " " + ySwap1 + " " + xSwap2 + " " + ySwap2);
+  arduino.digitalWrite(ledPin, Arduino.HIGH);
+  delay(1000);
+  arduino.digitalWrite(ledPin, Arduino.LOW);
+  delay(1000);
+
+  //println(x1 + " " + y1 + " " + x2 + " " + y2 + " " + xSwap1 + " " + ySwap1 + " " + xSwap2 + " " + ySwap2);
 
   person1.distance = abs(dist(person1.posx, person1.posy, 120+20*x1, 160+20*y1));
   person2.distance = abs(dist(person2.posx, person2.posy, 440+20*x2, 160+20*y2));

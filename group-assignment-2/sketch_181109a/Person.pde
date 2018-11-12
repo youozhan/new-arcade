@@ -12,6 +12,8 @@ class Person {
   }
 
   void update() {
+    posx = 120 + 20 * sensor0;
+    posy = 160 + 20 * sensor1;
   //  if (key == 'd' || keyCode == RIGHT) {
   //    posx += 20;
   //  }
