@@ -17,6 +17,7 @@ void setup() {
   }
 
   SlideToGrid(0, 0);
+  delay(1000);
 }
 
 void loop() {
@@ -30,7 +31,7 @@ void loop() {
   coordinate();
   
   Serial.print(posx);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.println(posy);
 }
 
@@ -82,5 +83,5 @@ void coordinate() {
   }
 
   posx = (900 - motorValue1) / 70;
-  posy = (motorValue2 - 410) / 60;
+  posy = (motorValue2 - 410) / 70;
 }
