@@ -37,7 +37,10 @@ void setup() {
   port = new Serial(this, Serial.list()[3], 9600);
 
   arduino = new Arduino(this, Arduino.list()[4], 57600);
-  arduino.pinMode(ledPin, Arduino.OUTPUT);
+  arduino.pinMode(ledPin1, Arduino.OUTPUT);
+  arduino.pinMode(ledPin2, Arduino.OUTPUT);
+  arduino.pinMode(ledPin1, Arduino.OUTPUT);
+  arduino.pinMode(ledPin2, Arduino.OUTPUT);
 
   port.bufferUntil('\n');
 
@@ -47,8 +50,9 @@ void setup() {
   textFont(font);
   textAlign(LEFT);
   textSize(14);
-  
-  ledOff();
+
+  led1Off();
+  led2Off();
 
   x1 = int(random(0, 7));
   y1 = int(random(0, 7));
@@ -134,7 +138,8 @@ void keyReleased() {
     person1.goal = false;
     person2.goal = false;
     status = true;
-    ledOff();
+    led1Off();
+    led2Off();
 
     x1 = int(random(0, 7));
     y1 = int(random(0, 7));
@@ -184,19 +189,19 @@ void treasure() {
   if (person1.distance < prev1) {
     person1.close = true;
     text("Player 1 is closer", 40, 40);
-    ledBlink();
+    led1Blink();
   } else {
     person1.close = false;
-    ledOff();
+    led1Off();
   }
 
   if (person2.distance < prev2) {
     person2.close = true;
     text("Player 2 is closer", 400, 40);
-    ledBlink();
+    led2Blink();
   } else {
     person2.close = false;
-    ledOff();
+    led2Off();
   }
 
   if (person1.distance == 0) {
@@ -204,7 +209,7 @@ void treasure() {
     println("person1 wins");
     text("Player 1 wins", 40, 40);
     text("Player 1 wins", 400, 40);
-    ledOn();
+    led1On();
     status = false;
   }
 
@@ -213,7 +218,7 @@ void treasure() {
     println("person2 wins");
     text("Player 2 wins", 40, 40);
     text("Player 2 wins", 400, 40);
-    ledOn();
+    led2On();
     status = false;
   }
 
