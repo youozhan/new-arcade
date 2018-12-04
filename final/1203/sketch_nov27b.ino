@@ -1,5 +1,6 @@
 /* continue 22, restart 23, pedal 24, keypad 25-32, microswitch 33,
    rotary encoder 34 35, 36 37
+   slide potentiometer A4
    progress led 53, state led 52, error led 51
 */
 
@@ -9,7 +10,7 @@
 const int proceedPin = 22;
 const int restartPin = 23;
 const int pedalPin = 24;
-const int switchPin = 33;
+const int knifePin = 33;
 
 // define keypad
 const byte ROWS = 4;
@@ -46,14 +47,21 @@ int creamLastState;
 int crankState;
 int crankLastState;
 
+// define potentiometer
+int appleLastPos;
+int applePos;
+int knifeLastState = 1;
+int knifeState;
+int sliceCounter = 0;
+
 // define output
 int redPin = 51;
 int greenPin = 52;
 int yellowPin = 53;
 
 // define additional readings
-//int reading[4];
 int unlock = 0;
+int appleReady = 0;
 int creamReady = 0;
 int pieReady = 0;
 
@@ -63,12 +71,12 @@ void setup() {
   pinMode(proceedPin, INPUT_PULLUP);
   pinMode(restartPin, INPUT_PULLUP);
   pinMode(pedalPin, INPUT_PULLUP);
-  pinMode(switchPin, INPUT_PULLUP);
+  pinMode(knifePin, INPUT_PULLUP);
 
   pinMode(creamA, INPUT);
   pinMode(creamB, INPUT);
   pinMode(crankA, INPUT);
-  pinMode(crankA, INPUT);
+  pinMode(crankB, INPUT);
 
   pinMode(yellowPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
@@ -77,11 +85,14 @@ void setup() {
 
   creamLastState = digitalRead(creamA);
   crankLastState = digitalRead(crankA);
+
+  appleLastPos = analogRead(A4);
 }
 
 void loop() {
-  //  readings();
+
   unlockFridge();
+  cutApple();
   makeCream();
   finishPie();
 
@@ -89,11 +100,16 @@ void loop() {
   Serial.print(",");
   Serial.print(digitalRead(restartPin));
   Serial.print(",");
+
   Serial.print(digitalRead(pedalPin));
   Serial.print(",");
-  Serial.print(digitalRead(switchPin));
-  Serial.print(",");
+
+  //  Serial.print(digitalRead(knifePin));
+  //  Serial.print(",");
+
   Serial.print(unlock);
+  Serial.print(",");
+  Serial.print(appleReady);
   Serial.print(",");
   Serial.print(creamReady);
   Serial.print(",");
@@ -102,7 +118,12 @@ void loop() {
   //  Serial.print(creamCounter[0]);
   //  Serial.print(",");
   //  Serial.println(creamCounter[1]);
-//  Serial.println(crankCounter);
+  //  Serial.println(crankCounter);
+  //  Serial.print(applePos);
+  //  Serial.print(",");
+  //  Serial.print(knifeState);
+  //  Serial.print(",");
+  //  Serial.println(sliceCounter);
 
   restart();
 }
@@ -120,7 +141,6 @@ void unlockFridge() {
 
     if (!strcmp(Data, Master)) {
       Serial.println("Correct");
-      //      digitalWrite(greenPin, HIGH);
       checkingProgress();
       unlock = 1;
     }
@@ -133,6 +153,27 @@ void unlockFridge() {
       Data[data_count--] = 0;
     }
     return;
+  }
+}
+
+void cutApple() {
+  applePos = analogRead(A4);
+  knifeState = digitalRead(knifePin);
+
+  if ((knifeState == 0) && (knifeLastState == 1)) {
+    if (applePos > appleLastPos) {
+      sliceCounter ++;
+      checkingState();
+    }
+  }
+
+  appleLastPos = applePos;
+  knifeLastState = knifeState;
+
+  if (sliceCounter > 6) {
+    checkingProgress();
+    appleReady = 1;
+    sliceCounter = 0;
   }
 }
 
@@ -149,8 +190,6 @@ void makeCream() {
         creamCounter[1] ++;
         checkingState();
       }
-      //    Serial.print("Position: ");
-      //    Serial.println(counter);
     }
     creamLastState = creamState; // Updates the previous state of the outputA with the current state
 
@@ -171,7 +210,7 @@ void finishPie() {
         crankCounter ++;
         checkingState();
       } else {
-        crankCounter --;
+//        crankCounter --;
       }
     }
     crankLastState = crankState;
@@ -192,8 +231,10 @@ void restart() {
     digitalWrite(yellowPin, LOW);
 
     unlock = 0;
+    appleReady = 0;
     creamReady = 0;
     pieReady = 0;
+
   }
 }
 
@@ -214,18 +255,3 @@ void checkingError() {
   delay(100);
   digitalWrite(redPin, LOW);
 }
-
-//void readings() {
-//  if (digitalRead(proceedPin) == 0) {
-//    reading[0] = 1;
-//  } else {
-//    reading[0] = 0;
-//  }
-//
-//  if (digitalRead(restartPin) == 0) {
-//    reading[1] = 1;
-//  } else {
-//    reading[1] = 0;
-//  }
-//
-//}
