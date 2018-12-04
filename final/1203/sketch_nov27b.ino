@@ -1,5 +1,6 @@
 /* continue 22, restart 23, pedal 24, keypad 25-32, microswitch 33,
    rotary encoder 34 35, 36 37
+   pressure sensor 39 40 41 A0 A1 A2
    slide potentiometer A4
    progress led 53, state led 52, error led 51
 */
@@ -34,6 +35,14 @@ byte data_count = 0, master_count = 0;
 //bool Pass_is_good;
 char customKey;
 
+// define pressure sensor
+#define numRows 3
+#define numCols 3
+int rows[] = {A0, A1, A2};
+int cols[] = {39, 40, 41};
+int crustValues[9] = {};
+bool crust[9];
+
 // define rotary encoder reading
 #define creamA 34
 #define creamB 35
@@ -54,6 +63,8 @@ int knifeLastState = 1;
 int knifeState;
 int sliceCounter = 0;
 
+int crustCounter = 0;
+
 // define output
 int redPin = 51;
 int greenPin = 52;
@@ -62,6 +73,7 @@ int yellowPin = 53;
 // define additional readings
 int unlock = 0;
 int appleReady = 0;
+int crustReady = 0;
 int creamReady = 0;
 int pieReady = 0;
 
@@ -81,18 +93,32 @@ void setup() {
   pinMode(yellowPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(redPin, OUTPUT);
+
+  for (int i = 0; i < numRows; i++) {
+    pinMode(rows[i], INPUT);
+  }
+
+  for (int i = 0; i < numCols; i++) {
+    pinMode(cols[i], INPUT);
+  }
+
   Serial.begin(9600);
 
   creamLastState = digitalRead(creamA);
   crankLastState = digitalRead(crankA);
 
   appleLastPos = analogRead(A4);
+
+  for (int i = 0; i < 9; i++) {
+    crust[i] = false;
+  }
 }
 
 void loop() {
 
   unlockFridge();
   cutApple();
+  makeCrust();
   makeCream();
   finishPie();
 
@@ -111,6 +137,8 @@ void loop() {
   Serial.print(",");
   Serial.print(appleReady);
   Serial.print(",");
+  Serial.print(crustReady);
+  Serial.print(",");
   Serial.print(creamReady);
   Serial.print(",");
   Serial.println(pieReady);
@@ -124,7 +152,9 @@ void loop() {
   //  Serial.print(knifeState);
   //  Serial.print(",");
   //  Serial.println(sliceCounter);
+  //  Serial.println(crustCounter);
 
+  winning();
   restart();
 }
 
@@ -177,6 +207,45 @@ void cutApple() {
   }
 }
 
+void makeCrust() {
+  if (crustReady == 0) {
+    for (int colCount = 0; colCount < numCols; colCount++) {
+      pinMode(cols[colCount], OUTPUT);  // set as OUTPUT
+      digitalWrite(cols[colCount], LOW);  // set LOW
+
+      for (int rowCount = 0; rowCount < numRows; rowCount++) {
+        pinMode(rows[rowCount], INPUT_PULLUP);  // set as INPUT with PULLUP RESISTOR
+        delay(1);
+        crustValues[ ( (colCount)*numRows) + (rowCount)] = analogRead(rows[rowCount]);  // read INPUT
+
+        // set pin back to INPUT
+        pinMode(rows[rowCount], INPUT);
+
+      }// end rowCount
+
+      pinMode(cols[colCount], INPUT);  // set back to INPUT!
+
+    }// end colCount
+
+    for (int i = 0; i < 9; i++) {
+      if (crustValues[i] < 70) {
+        crust[i] = true;
+        checkingState();
+        crustCounter ++;
+      }
+    }
+  }
+
+  if (crust[0] && crust[1] && crust[2] && crust[3] && crust[4] && crust[5] && crust[6] && crust[7] && crust[8]) {
+    crustReady = 1;
+    checkingProgress();
+    for (int i = 0; i < 9; i++) {
+      crust[i] = false;
+    }
+    crustCounter = 0;
+  }
+}
+
 void makeCream() {
   if (creamReady == 0) {
     creamState = digitalRead(creamA); // Reads the "current" state of the outputA
@@ -210,7 +279,7 @@ void finishPie() {
         crankCounter ++;
         checkingState();
       } else {
-//        crankCounter --;
+        //        crankCounter --;
       }
     }
     crankLastState = crankState;
@@ -232,9 +301,20 @@ void restart() {
 
     unlock = 0;
     appleReady = 0;
+    crustReady = 0;
     creamReady = 0;
     pieReady = 0;
 
+  }
+}
+
+void winning() {
+  if ((unlock == 1) && (appleReady == 1) && (crustReady == 1) && (creamReady == 1) && (pieReady == 1)) {
+    if (!proceedPin) {
+      digitalWrite(redPin, HIGH);
+      digitalWrite(greenPin, HIGH);
+      digitalWrite(yellowPin, HIGH);
+    }
   }
 }
 
