@@ -135,13 +135,13 @@ void loop() {
 
   Serial.print(unlock);
   Serial.print(",");
-  Serial.print(appleReady);
+  Serial.print(sliceCounter);
   Serial.print(",");
-  Serial.print(crustReady);
+  Serial.print(crustCounter);
   Serial.print(",");
-  Serial.print(creamReady);
+  Serial.print(creamCounter[0] + creamCounter[1]);
   Serial.print(",");
-  Serial.println(pieReady);
+  Serial.println(crankCounter);
 
   //  Serial.print(creamCounter[0]);
   //  Serial.print(",");
@@ -160,50 +160,54 @@ void loop() {
 
 //**********************************************
 void unlockFridge() {
-  customKey = customKeypad.getKey();
-  if (customKey) {
-    checkingState();
-    Data[data_count] = customKey;
-    data_count++;
-  }
-
-  if (data_count == Password_Length - 1) {
-
-    if (!strcmp(Data, Master)) {
-      Serial.println("Correct");
-      checkingProgress();
-      unlock = 1;
+  if(unlock == 0){
+    customKey = customKeypad.getKey();
+    if (customKey) {
+      checkingState();
+      Data[data_count] = customKey;
+      data_count++;
     }
-    else {
-      Serial.println("Incorrect");
-      checkingError();
+  
+    if (data_count == Password_Length - 1) {
+  
+      if (!strcmp(Data, Master)) {
+        Serial.println("Correct");
+        checkingProgress();
+        unlock = 1;
+      }
+      else {
+        Serial.println("Incorrect");
+        checkingError();
+      }
+  
+      while (data_count != 0) {
+        Data[data_count--] = 0;
+      }
+      return;
     }
-
-    while (data_count != 0) {
-      Data[data_count--] = 0;
-    }
-    return;
   }
 }
 
 void cutApple() {
-  applePos = analogRead(A4);
-  knifeState = digitalRead(knifePin);
+  if (appleReady == 0) {
+    applePos = analogRead(A4);
+    knifeState = digitalRead(knifePin);
 
-  if ((knifeState == 0) && (knifeLastState == 1)) {
-    if (applePos > appleLastPos) {
-      sliceCounter ++;
-      checkingState();
+    if ((knifeState == 0) && (knifeLastState == 1)) {
+      if (applePos > appleLastPos) {
+        sliceCounter ++;
+        checkingState();
+      }
     }
-  }
 
-  appleLastPos = applePos;
-  knifeLastState = knifeState;
+    appleLastPos = applePos;
+    knifeLastState = knifeState;
+  }
 
   if (sliceCounter > 6) {
     checkingProgress();
     appleReady = 1;
-    sliceCounter = 0;
+    sliceCounter = 6;
   }
 }
 
@@ -242,7 +246,7 @@ void makeCrust() {
     for (int i = 0; i < 9; i++) {
       crust[i] = false;
     }
-    crustCounter = 0;
+    crustCounter = 9;
   }
 }
 
@@ -265,8 +269,8 @@ void makeCream() {
     if ((creamCounter[0] >= 15) && (creamCounter[1] >= 15)) {
       checkingProgress();
       creamReady = 1;
-      creamCounter[0] = 0;
-      creamCounter[1] = 0;
+      creamCounter[0] = 15;
+      creamCounter[1] = 15;
     }
   }
 }
@@ -287,7 +291,7 @@ void finishPie() {
     if (crankCounter >= 20) {
       checkingProgress();
       pieReady = 1;
-      crankCounter = 0;
+      crankCounter = 20;
     }
   }
 }
@@ -304,6 +308,12 @@ void restart() {
     crustReady = 0;
     creamReady = 0;
     pieReady = 0;
+
+    sliceCounter = 0;
+    crustCounter = 0;
+    creamCounter[0] = 0;
+    creamCounter[1] = 0;
+    crankCounter = 0;
 
   }
 }
