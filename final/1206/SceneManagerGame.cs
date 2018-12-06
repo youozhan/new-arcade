@@ -137,14 +137,14 @@ public class SceneManagerGame : MonoBehaviour {
              steps[1].SetActive(true);
              Debug.Log("over 5");
          }
-         else if(steps[1].activeSelf && proceedButton == 0 )
+         else if(steps[1].activeSelf && proceedButton == 0 && buttonisPressed==false)
          {
              steps[1].SetActive(false);
              steps[2].SetActive(true);
 			 buttonisPressed = true;
 			 return;
          }
-		 else if(steps[2].activeSelf && proceedButton == 0 )
+		 else if(steps[2].activeSelf && proceedButton == 0 && buttonisPressed==false)
          {
              steps[2].SetActive(false);
              steps[3].SetActive(true);

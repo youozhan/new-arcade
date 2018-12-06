@@ -9,6 +9,8 @@ public class Scenemanager : MonoBehaviour
     Scene currentScene;
 	int sceneIndex;
 
+    bool proceedCounter = false;
+
     //access the GameManager object
     private GameObject arduinoInput;
     GameController gameController;
@@ -17,6 +19,9 @@ public class Scenemanager : MonoBehaviour
     public GameObject[] steps;
 
     int proceedButton;
+
+    int prevproceedButton;
+
     int resetButton;
     public int scenIndexProperty{
         get{return sceneIndex;}
@@ -33,6 +38,7 @@ public class Scenemanager : MonoBehaviour
        
         proceedButton = 1;
         resetButton = 1;
+        prevproceedButton = 1;
 
         steps[1].SetActive(false);
         steps[2].SetActive(false);
@@ -41,50 +47,61 @@ public class Scenemanager : MonoBehaviour
        
     }
 
-    void Update()
+    void LateUpdate()
     {
         //Assign buttonPress to the Property variable from the GameController Script 
         proceedButton = gameController.ButtonPressAcessor;
         resetButton = gameController.ResetButtonAccessor;
-
-
+        Debug.Log("current " + proceedButton + " prev " + prevproceedButton);
          
         //keyboard input test
-         if(Input.GetKeyUp(KeyCode.Space)){
-             proceedButton = 0;
-         }else{proceedButton = 1;}
+        //  if(Input.GetKeyUp(KeyCode.Space)){
+        //      proceedButton = 0;
+        //  }else{proceedButton = 1;}
 
-        if(Input.GetKeyDown(KeyCode.Return)){
-            resetButton = 0;
-        }else{resetButton = 1;}
-
+        // if(Input.GetKeyDown(KeyCode.Return)){
+        //     resetButton = 0;
+        // }else{resetButton = 1;}
 
         //Intro Scene
-         if(steps[0].activeSelf && proceedButton == 0 )
+
+        if (proceedButton == 0 && prevproceedButton != proceedButton)
+        {
+            proceedCounter = true;
+        } else {
+            proceedCounter = false;
+        }
+
+         if(steps[0].activeSelf && proceedCounter)
          {
              steps[0].SetActive(false);
              steps[1].SetActive(true);
-             return;
+             Debug.Log("Test connection");
+             proceedCounter = false;
+            //  return;
          }
-         if(steps[1].activeSelf && proceedButton == 0 )
+         if(steps[1].activeSelf && proceedCounter)
          {
              steps[1].SetActive(false);
              steps[2].SetActive(true);
-             return;
+             proceedCounter = false;
+            //  return;
          }
-         if(steps[2].activeSelf && proceedButton == 0 )
+         if(steps[2].activeSelf && proceedCounter)
          {
              steps[2].SetActive(false);
              steps[3].SetActive(true);
-             return;
+             proceedCounter = false;
+            //  return;
          }
-         if(steps[3].activeSelf && proceedButton == 0 )
+         if(steps[3].activeSelf && proceedCounter)
          {
              SceneManager.LoadScene(sceneIndex = 1, LoadSceneMode.Single);
+             proceedCounter = false;
              Debug.Log("Image 3");
          }
 
-         else if( resetButton == 0 )
+         if( resetButton == 0 )
          {
             SceneManager.LoadScene(sceneIndex = 0, LoadSceneMode.Single);
 
@@ -97,7 +114,17 @@ public class Scenemanager : MonoBehaviour
               Debug.Log("Quit");
          }
 
+        //  if(proceedButton == 0){
+        //     proceedCounter = false;
+        // }
+
+         prevproceedButton = proceedButton;
+
          Debug.Log(sceneIndex);
+
+        //  if(proceedCounter == 0) {
+        //      proceedCounter = 10;
+        //  }
         
    } 
 }

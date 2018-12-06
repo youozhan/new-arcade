@@ -34,7 +34,7 @@ public class UIManager : MonoBehaviour {
 
 		timer.text = countDown.ToString("F");
 
-		Debug.Log(countDown);
+		// Debug.Log(countDown);
 
 	}
 }

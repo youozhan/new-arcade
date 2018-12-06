@@ -7,8 +7,8 @@ public class GameController : MonoBehaviour {
 
     //access the serial port the Arduino is communicating with
     //private SerialPort stream = new SerialPort("COM5", 9600);
-    //private SerialPort stream = new SerialPort("/dev/cu.usbmodem141401", 9600);
-    private SerialPort stream = new SerialPort("/dev/cu.usbmodem1461", 9600);
+    private SerialPort stream = new SerialPort("/dev/cu.usbmodem141401", 9600);
+    // private SerialPort stream = new SerialPort("/dev/cu.usbmodem1461", 9600);
 
     //declare variable for the button input
     //create the public property for the scenemanager script to access
