@@ -98,7 +98,6 @@ public class Scenemanager : MonoBehaviour
          {
              SceneManager.LoadScene(sceneIndex = 1, LoadSceneMode.Single);
              proceedCounter = false;
-             Debug.Log("Image 3");
          }
 
          if( resetButton == 0 )

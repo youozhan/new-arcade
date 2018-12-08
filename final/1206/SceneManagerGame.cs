@@ -33,7 +33,9 @@ public class SceneManagerGame : MonoBehaviour {
     }
 
     bool tempIsGood;
-	bool buttonisPressed = false;
+	bool proceedCounter = false;
+    int prevproceedButton;
+
 
     void Start()
     {
@@ -44,6 +46,9 @@ public class SceneManagerGame : MonoBehaviour {
 
         currentScene = SceneManager.GetActiveScene ();
         sceneIndex = currentScene.buildIndex;
+
+        prevproceedButton = 1;
+
        
         proceedButton = 1;
         resetButton = 1;
@@ -71,7 +76,7 @@ public class SceneManagerGame : MonoBehaviour {
        
     }
 
-    void Update()
+    void LateUpdate()
     {
         //Assign buttonPress to the Property variable from the GameController Script 
         proceedButton = gameController.ButtonPressAcessor;
@@ -85,9 +90,9 @@ public class SceneManagerGame : MonoBehaviour {
 		countDown = uimanager.CountDownAccessor;
          
         //keyboard input test
-         if(Input.GetKey(KeyCode.Space)){
-             proceedButton = 0;
-         }else{proceedButton = 1;}
+        //  if(Input.GetKey(KeyCode.Space)){
+        //      proceedButton = 0;
+        //  }else{proceedButton = 1;}
 
         // if(Input.GetKeyDown(KeyCode.Keypad2)){
         //     resetButton = 0;
@@ -113,10 +118,12 @@ public class SceneManagerGame : MonoBehaviour {
         // if(Input.GetKey(KeyCode.Keypad8)){
         //    broilRotaryEncoder++;
         // }
-
-		if(proceedButton == 1){
-			buttonisPressed = false;
-		}
+       if (proceedButton == 0 && prevproceedButton != proceedButton)
+        {
+            proceedCounter = true;
+        } else {
+            proceedCounter = false;
+        }
 
         if (ovenTemp == 0)
         { gameOvenTemp+= 2; }
@@ -137,18 +144,18 @@ public class SceneManagerGame : MonoBehaviour {
              steps[1].SetActive(true);
              Debug.Log("over 5");
          }
-         else if(steps[1].activeSelf && proceedButton == 0 && buttonisPressed==false)
+         else if(steps[1].activeSelf && proceedCounter)
          {
              steps[1].SetActive(false);
              steps[2].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
-		 else if(steps[2].activeSelf && proceedButton == 0 && buttonisPressed==false)
+		 else if(steps[2].activeSelf && proceedCounter)
          {
              steps[2].SetActive(false);
              steps[3].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
          else if(steps[3].activeSelf && keyPad == 1)
@@ -156,18 +163,18 @@ public class SceneManagerGame : MonoBehaviour {
              steps[3].SetActive(false);
              steps[4].SetActive(true);
          }
-         else if(steps[4].activeSelf && proceedButton == 0 && buttonisPressed==false)
+         else if(steps[4].activeSelf && proceedCounter)
          {
              steps[4].SetActive(false);
              steps[5].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
-         else if(steps[5].activeSelf && proceedButton == 0 && buttonisPressed==false)
+         else if(steps[5].activeSelf && proceedCounter)
          {
              steps[5].SetActive(false);
              steps[6].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
          else if(steps[6].activeSelf && appleSliceCounter >=6)
@@ -175,18 +182,18 @@ public class SceneManagerGame : MonoBehaviour {
              steps[6].SetActive(false);
              steps[7].SetActive(true);
          }
-         else if(steps[7].activeSelf && proceedButton == 0 && buttonisPressed==false)
+         else if(steps[7].activeSelf && proceedCounter)
          {
              steps[7].SetActive(false);
              steps[8].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
-          else if(steps[8].activeSelf && proceedButton == 0 && buttonisPressed==false)
+          else if(steps[8].activeSelf && proceedCounter)
          {
              steps[8].SetActive(false);
              steps[9].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
          else if(steps[9].activeSelf && crustReady == 9)
@@ -197,11 +204,11 @@ public class SceneManagerGame : MonoBehaviour {
              steps[10].SetActive(true);
             }else{SceneManager.LoadScene(sceneIndex = 2, LoadSceneMode.Single);}
          }
-         else if(steps[10].activeSelf && proceedButton == 0 && buttonisPressed==false)
+         else if(steps[10].activeSelf && proceedCounter)
          {
              steps[10].SetActive(false);
              steps[11].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
          else if(steps[11].activeSelf && creamRotaryEncoder >= 20)
@@ -213,11 +220,11 @@ public class SceneManagerGame : MonoBehaviour {
 			  }else{SceneManager.LoadScene(sceneIndex = 2, LoadSceneMode.Single);}
              
          }
-         else if(steps[12].activeSelf && proceedButton == 0 && buttonisPressed==false)
+         else if(steps[12].activeSelf && proceedCounter)
          {
              steps[12].SetActive(false);
              steps[13].SetActive(true);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
          else if(steps[13].activeSelf && broilRotaryEncoder >= 20)
@@ -225,10 +232,10 @@ public class SceneManagerGame : MonoBehaviour {
              steps[13].SetActive(false);
              steps[14].SetActive(true);
          }
-          else if(steps[14].activeSelf && proceedButton == 0 && buttonisPressed==false)
+          else if(steps[14].activeSelf && proceedCounter)
          {
              SceneManager.LoadScene(sceneIndex = 3, LoadSceneMode.Single);
-			 buttonisPressed = true;
+			 proceedCounter = false;
 			 return;
          }
          else if( resetButton == 0 )
@@ -255,6 +262,9 @@ public class SceneManagerGame : MonoBehaviour {
              Application.Quit();
 			  Debug.Log("Quit");
          }
+
+            prevproceedButton = proceedButton;
+
 
          Debug.Log(sceneIndex);
         
